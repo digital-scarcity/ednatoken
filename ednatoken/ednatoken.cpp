@@ -119,41 +119,29 @@ void ednatoken::process () {
     require_auth (_self);
     stake_table s_t (_self, _self);
     auto itr = s_t.begin();
-    auto total_stake = itr->staked;
-    auto total_shares = 0;
-    itr++;
+    uint64_t total_shares = 0;
+    asset total_stake {0, string_to_symbol(4, "EDNA")};
     while (itr != s_t.end()) {
         total_stake += itr->staked;
         if (itr->stake_period == WEEKLY) {
-            print ("Staked Amount: ", itr->staked.amount / 10000, "\n");
-            total_shares += 100 * itr->staked.amount / 10000 / 100;    
+            total_shares += (100 * itr->staked.amount / 10000 / 100);   
         } else if (itr->stake_period == MONTHLY) {
-            total_shares += 150 * itr->staked.amount / 10000 / 100;
+            total_shares += 150 * itr->staked.amount / 100;
         } else if (itr->stake_period == QUARTERLY) {
-            total_shares += 200 * itr->staked.amount / 10000 / 100;
+            total_shares += 200 * itr->staked.amount  / 100;
         }
         itr++;
     }
     
-    auto g_total_stake = total_stake;// * pow(10,6);
+    auto weekly_base = asset{BASE_WEEKLY, string_to_symbol(4, "EDNA")};
+    print ("Weekly Base         : ", weekly_base, "\n");
 
-    print ("\n\n");
-    print ("name{total_stake.symbol.name()} : ", name{total_stake.symbol.name()}, "\n");
-    print ("name{total_stake.symbol}        : ", name{total_stake.symbol}, "\n");
-    print ("total_stake.symbol              : ", total_stake.symbol, "\n");
-    print ("total_stake.symbol.name()       : ", total_stake.symbol.name(), "\n");
-    print ("total_stake                     : ", total_stake, "\n");
-    print ("\n\n");
+    auto g_total_stake = total_stake;// * pow(10,6);
 
     auto supply = 1000000000;
 
     stats stat_t (_self, total_stake.symbol);
-   // auto stat_itr = stat_t.find(total_stake.symbol);
-   // eosio_assert (stat_itr != stat_t.end(), "Symbol not found.");
- 
-  //  print ("Stat_itr Symbol     : ", name{stat_itr->supply.symbol.name()}, "\n");
-  //  print ("Stat_itr Supply     : ", asset{stat_itr->supply}, "\n");
-
+  
     print ("Total Stake         : ", total_stake, "\n");
     print ("G Total Stake       : ", g_total_stake, "\n");
     print ("Supplied Token      : ", supply, "\n");
@@ -162,7 +150,7 @@ void ednatoken::process () {
     auto perc_stakedx100 = g_total_stake / supply;// / 10 ^ 6 ;
     print ("Perc Stakedx100     : ", perc_stakedx100, "\n");
 
-    auto base_payout = perc_stakedx100 * BASE_WEEKLY ;
+    auto base_payout = perc_stakedx100 * weekly_base.amount / 10000 ;
     print ("Base Payout         : ", base_payout, "\n");
 
     config_table c_t (_self, _self);
@@ -181,21 +169,26 @@ void ednatoken::process () {
 
     print ("Total Payout        : ", total_payout, "\n");
     
-    auto unclaimed_tokens = BASE_WEEKLY - total_payout;
+    auto unclaimed_tokens = weekly_base - total_payout;
     print ("Unclaimed Tokens    : ", unclaimed_tokens, "\n");
-    // itr = s_t.begin();
-    // ass
-    // while (itr != s_t.end()) {
-    //     print ("------  Reward  ---------------\n")
-    //     print ("TO      : ", name{itr->stake_account)}, "\n");
-    //     if (itr->stake_period == WEEKLY) {
-    //         total_shares += itr->staked * WEEKLY_MULTIPLERX100 / 100;
-    //     } else if (itr->stake_period == MONTHLY) {
-    //         total_shares += itr->staked * MONTH_MULTIPLERX100 / 100;
-    //     } else if (itr->stake_period == QUARTERLY) {
-    //         total_shares += itr->staked * QUARTER_MULTIPLERX100 / 100;
-    //     }
-    // }
+    // Send unclaimed tokens to the overflow account
+    
+    itr = s_t.begin();
+    while (itr != s_t.end()) {
+        print ("------  Reward  ---------------\n");
+        print ("TO      : ", name{itr->stake_account}, "\n");
+        asset payout;
+        if (itr->stake_period == WEEKLY) {
+            payout = (WEEK_MULTIPLIERX100 * itr->staked.amount / 100 ) / total_shares * total_payout / 10000;
+        } else if (itr->stake_period == MONTHLY) {
+            payout = (MONTH_MULTIPLIERX100 * itr->staked.amount / 100 ) / total_shares * total_payout / 10000;
+        } else if (itr->stake_period == QUARTERLY) {
+            payout = (QUARTER_MULTIPLIERX100 * itr->staked.amount / 100 ) / total_shares * total_payout / 10000;
+        }
+        print ("PAYOUT  : ", payout);
+        print ("------  End Reward  ------------\n");
+        itr++;
+    }
 
 }
 

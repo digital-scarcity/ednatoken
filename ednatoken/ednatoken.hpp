@@ -53,7 +53,7 @@ class ednatoken : public contract
     const uint16_t  WEEK_MULTIPLIERX100 = 100;
     const uint16_t  MONTH_MULTIPLIERX100 = 150;
     const uint16_t  QUARTER_MULTIPLIERX100 = 200;
-    const asset  BASE_WEEKLY = asset{2000000, string_to_symbol(4, "EDNA")};
+    const int64_t  BASE_WEEKLY = 20000000000;
 
     const uint8_t   WEEKLY = 1;
     const uint8_t   MONTHLY = 2;
