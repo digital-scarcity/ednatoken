@@ -53,7 +53,7 @@ class ednatoken : public contract
     const uint16_t  WEEK_MULTIPLIERX100 = 100;
     const uint16_t  MONTH_MULTIPLIERX100 = 150;
     const uint16_t  QUARTER_MULTIPLIERX100 = 200;
-    const int64_t  BASE_WEEKLY = 20000000000;
+    const int64_t   BASE_WEEKLY = 20000000000;
 
     const uint8_t   WEEKLY = 1;
     const uint8_t   MONTHLY = 2;
@@ -86,6 +86,8 @@ class ednatoken : public contract
         account_name    stake_account;
         uint8_t         stake_period;
         asset           staked;
+        uint32_t        stake_date;
+        uint32_t        stake_due;
 
         uint64_t    primary_key () const { return stake_id; }
         EOSLIB_SERIALIZE (stake_row, (stake_id)(stake_account)(stake_period)(staked));
