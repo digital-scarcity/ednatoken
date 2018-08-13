@@ -29,6 +29,9 @@ class ednatoken : public contract
                    asset       _staked ) ;
 
     // @abi action
+    void unstake (const uint64_t _stake_id);
+
+    // @abi action
     void transfer(account_name from,
                   account_name to,
                   asset quantity,
@@ -89,11 +92,17 @@ class ednatoken : public contract
         uint32_t        stake_date;
         uint32_t        stake_due;
 
-        uint64_t    primary_key () const { return stake_id; }
+        uint64_t        primary_key () const { return stake_id; }
+        account_name    byaccount() const { return stake_account; }
+
         EOSLIB_SERIALIZE (stake_row, (stake_id)(stake_account)(stake_period)(staked)(stake_date)(stake_due));
     };
 
-    typedef eosio::multi_index<N(stakes), stake_row> stake_table;
+    typedef eosio::multi_index<N(stakes), stake_row,
+        indexed_by< N(stakeaccount),
+            const_mem_fun<stake_row, account_name, &stake_row::byaccount>
+        >
+    > stake_table;
 
     // @abi table stat i64
     struct currencystat
@@ -143,4 +152,4 @@ asset ednatoken::get_balance(account_name owner, symbol_name sym) const
 
 
 EOSIO_ABI( ednatoken, (setoverflow)(addbonus)(create)
-                        (issue)(transfer)(addstake)(process))
+                        (issue)(transfer)(addstake)(unstake)(process))

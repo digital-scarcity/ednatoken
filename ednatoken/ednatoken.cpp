@@ -30,7 +30,6 @@ void ednatoken::create( account_name issuer,
 
 void ednatoken::issue( account_name to, asset quantity, string memo )
 {
-    eosio::print ("Issuing ");
     auto sym = quantity.symbol;
     eosio_assert( sym.is_valid(), "invalid symbol name" );
     eosio_assert( memo.size() <= 256, "memo has more than 256 bytes" );
@@ -199,10 +198,13 @@ void ednatoken::process (const uint8_t    _pay_indicator) {
             // print reward
             print ("PAYOUT  : ", payout, "\n");
 
-            // actually pay and reset stake due dates
+            // actually increase the staked quantity and reset stake due dates
             if (payout.amount > 0 && _pay_indicator != 0) {  
-                transfer (_self, itr->stake_account, payout, "EDNA Stake Reward");
                 s_t.modify(itr, _self, [&](auto &s) {
+                    s.staked += payout;  // increases existing stake
+                    sub_balance(_self, payout);  // decrement payout from _self
+                    //  OR you can send reward to the originating account
+                    //  transfer (_self, itr->stake_account, payout, "EDNA Stake Rewards");
                     if (itr->stake_period == WEEKLY) {
                         s.stake_due = now() + (60 * 60 * 24 * 7);
                     } else if (itr->stake_period == MONTHLY) {
@@ -216,6 +218,15 @@ void ednatoken::process (const uint8_t    _pay_indicator) {
         itr++;
     }
 }
+
+void ednatoken::unstake (const uint64_t _stake_id) {
+    stake_table s_t (_self, _self);
+    auto itr = s_t.find (_stake_id);
+    require_auth (itr->stake_account);
+    add_balance (itr->stake_account, itr->staked, itr->stake_account);
+    s_t.erase (itr);
+}
+
 
 void ednatoken::addstake (account_name _stake_account,
                             uint8_t      _stake_period,
