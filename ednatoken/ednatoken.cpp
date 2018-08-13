@@ -115,15 +115,16 @@ void ednatoken::addbonus (account_name _sender, asset _bonus) {
     sub_balance(_sender, _bonus);
 }
 
-void ednatoken::process () {
+void ednatoken::process (const uint8_t    _pay_indicator) {
     require_auth (_self);
     stake_table s_t (_self, _self);
     auto itr = s_t.begin();
     uint64_t total_shares = 0;
     asset total_stake {0, string_to_symbol(4, "EDNA")};
     while (itr != s_t.end()) {
-        total_stake += itr->staked;
-        if (itr->stake_due >= now()) {
+        print ("now ()      : ", now(), "\n");
+        if (itr->stake_due <= now()) {
+            total_stake += itr->staked;
             if (itr->stake_period == WEEKLY) {
                 total_shares += (WEEK_MULTIPLIERX100 * itr->staked.amount / 10000 / 100);   
             } else if (itr->stake_period == MONTHLY) {
@@ -170,14 +171,23 @@ void ednatoken::process () {
     print ("Unclaimed Tokens    : ", unclaimed_tokens, "\n");
     
     // Send unclaimed tokens to the overflow account
-    transfer (_self, c_itr->overflow, unclaimed_tokens, "Unclaimed Tokens");
+    if (_pay_indicator != 0) {
+        transfer (_self, c_itr->overflow, unclaimed_tokens, "Unclaimed Tokens");
+    }
+
+    if (total_payout.amount == 0 || total_stake.amount == 0) {
+        // nothing to pay
+        print ("Stakes processed, total_payout == 0, nothing to pay.\n");
+        return;
+    }
     
     itr = s_t.begin();
     while (itr != s_t.end()) {
         print ("------  Reward  ---------------\n");
         print ("TO      : ", name{itr->stake_account}, "\n");
         asset payout;
-        if (itr->stake_due >= now()) {
+        
+        if (itr->stake_due <= now() && itr-> staked.amount > 0) {
             if (itr->stake_period == WEEKLY) {
                 payout = (WEEK_MULTIPLIERX100 * itr->staked.amount / 100 ) / total_shares * total_payout / 10000;
             } else if (itr->stake_period == MONTHLY) {
@@ -185,12 +195,13 @@ void ednatoken::process () {
             } else if (itr->stake_period == QUARTERLY) {
                 payout = (QUARTER_MULTIPLIERX100 * itr->staked.amount / 100 ) / total_shares * total_payout / 10000;
             }
-            // pay reward
+      
+            // print reward
             print ("PAYOUT  : ", payout, "\n");
-            if (payout > 0) {
+
+            // actually pay and reset stake due dates
+            if (payout.amount > 0 && _pay_indicator != 0) {  
                 transfer (_self, itr->stake_account, payout, "EDNA Stake Reward");
-            
-                // reset stake due date
                 s_t.modify(itr, _self, [&](auto &s) {
                     if (itr->stake_period == WEEKLY) {
                         s.stake_due = now() + (60 * 60 * 24 * 7);
@@ -202,7 +213,6 @@ void ednatoken::process () {
                 });
             }
         }
-
         itr++;
     }
 }
@@ -232,11 +242,14 @@ void ednatoken::addstake (account_name _stake_account,
         s.staked        = _staked;
         s.stake_date    = now();
         if (_stake_period == WEEKLY) {
-            s.stake_due = now() + (60 * 60 * 24 * 7);
+            s.stake_due     = now() + 10;
+            //s.stake_due = now() + (60 * 60 * 24 * 7);
         } else if (_stake_period == MONTHLY) {
-            s.stake_due = now() + (60 * 60 * 24 * 7 * 4);
+            s.stake_due     = now() + 20;
+            //s.stake_due = now() + (60 * 60 * 24 * 7 * 4);
         } else if (_stake_period == QUARTERLY) {
-            s.stake_due = now() + (60 * 60 * 24 * 7 * 12);
+            s.stake_due     = now() + 45;
+            //s.stake_due = now() + (60 * 60 * 24 * 7 * 12);
         }
     });
 }
@@ -246,7 +259,6 @@ void ednatoken::sub_balance( account_name owner, asset value ) {
 
    const auto& from = from_acnts.get( value.symbol.name(), "no balance object found" );
    eosio_assert( from.balance.amount >= value.amount, "overdrawn balance" );
-
 
    if( from.balance.amount == value.amount ) {
       from_acnts.erase( from );

@@ -42,7 +42,7 @@ class ednatoken : public contract
                     asset           _bonus);
 
     // @abi action
-    void process () ;
+    void process (const uint8_t           _pay_indicator) ;
     
     inline asset get_supply(symbol_name sym) const;
 
@@ -66,7 +66,7 @@ class ednatoken : public contract
         account_name    overflow;
 
         uint64_t    primary_key() const { return config_id; }
-        EOSLIB_SERIALIZE (config, (config_id)(overflow));
+        EOSLIB_SERIALIZE (config, (config_id)(bonus)(overflow));
     };
 
     typedef eosio::multi_index<N(configs), config> config_table;
@@ -90,7 +90,7 @@ class ednatoken : public contract
         uint32_t        stake_due;
 
         uint64_t    primary_key () const { return stake_id; }
-        EOSLIB_SERIALIZE (stake_row, (stake_id)(stake_account)(stake_period)(staked));
+        EOSLIB_SERIALIZE (stake_row, (stake_id)(stake_account)(stake_period)(staked)(stake_date)(stake_due));
     };
 
     typedef eosio::multi_index<N(stakes), stake_row> stake_table;
