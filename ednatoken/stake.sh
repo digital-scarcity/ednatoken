@@ -1,6 +1,6 @@
 
 
-eosiocpp -g /eosdev/eosref/stake/stake.abi /eosdev/eosref/stake/stake.hpp && eosiocpp -o /eosdev/eosref/stake/stake.wast /eosdev/eosref/stake/stake.cpp
+eosiocpp -g /edna/ednatoken/ednatoken.abi /edna/ednatoken/ednatoken.hpp && eosiocpp -o /edna/ednatoken/ednatoken.wast /edna/ednatoken/ednatoken.cpp
 
 cleos create account eosio ednatoken11 EOS7ckzf4BMgxjgNSYV22rtTXga8R9Z4XWVhYp8TBgnBi2cErJ2hn EOS7ckzf4BMgxjgNSYV22rtTXga8R9Z4XWVhYp8TBgnBi2cErJ2hn
 
