@@ -16,6 +16,8 @@ cleos set contract ednatoken /edna/ednatoken
 cleos push action ednatoken2 create '["staker", "1300000000.0000 EDNA"]' -p ednatoken
 cleos push action ednatoken2 setoverflow '["overflow"]' -p ednatoken2
 
+cleos push action ednatoken11 issue '["ednatoken11",  "200000000.0000 EDNA", "memo"]' -p staker
+
 cleos push action ednatoken2 issue '["staker",  "200000000.0000 EDNA", "memo"]' -p staker
 cleos push action ednatoken2 issue '["staker1", "200000000.0000 EDNA", "memo"]' -p staker
 cleos push action ednatoken2 issue '["staker2", "200000000.0000 EDNA", "memo"]' -p staker

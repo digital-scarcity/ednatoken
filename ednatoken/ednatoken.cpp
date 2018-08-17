@@ -205,13 +205,14 @@ void ednatoken::process (const uint8_t    _pay_indicator) {
                     sub_balance(_self, payout);  // decrement payout from _self
                     //  OR you can send reward to the originating account
                     //  transfer (_self, itr->stake_account, payout, "EDNA Stake Rewards");
-                    if (itr->stake_period == WEEKLY) {
-                        s.stake_due = now() + (60 * 60 * 24 * 7);
-                    } else if (itr->stake_period == MONTHLY) {
-                        s.stake_due = now() + (60 * 60 * 24 * 7 * 4);
-                    } else if (itr->stake_period == QUARTERLY) {
-                        s.stake_due = now() + (60 * 60 * 24 * 7 * 12);
-                    }
+                    s.stake_due = now() + 10;
+                    // if (itr->stake_period == WEEKLY) {
+                    //     s.stake_due = now() + (60 * 60 * 24 * 7);
+                    // } else if (itr->stake_period == MONTHLY) {
+                    //     s.stake_due = now() + (60 * 60 * 24 * 7 * 4);
+                    // } else if (itr->stake_period == QUARTERLY) {
+                    //     s.stake_due = now() + (60 * 60 * 24 * 7 * 12);
+                    // }
                 });
             }
         }
@@ -252,16 +253,14 @@ void ednatoken::addstake (account_name _stake_account,
         s.stake_period  = _stake_period;
         s.staked        = _staked;
         s.stake_date    = now();
-        if (_stake_period == WEEKLY) {
-            s.stake_due     = now() + 10;
-            //s.stake_due = now() + (60 * 60 * 24 * 7);
-        } else if (_stake_period == MONTHLY) {
-            s.stake_due     = now() + 20;
-            //s.stake_due = now() + (60 * 60 * 24 * 7 * 4);
-        } else if (_stake_period == QUARTERLY) {
-            s.stake_due     = now() + 45;
-            //s.stake_due = now() + (60 * 60 * 24 * 7 * 12);
-        }
+        s.stake_due     = now() + 10;
+        // if (_stake_period == WEEKLY) {
+        //     s.stake_due = now() + (60 * 60 * 24 * 7);
+        // } else if (_stake_period == MONTHLY) {
+        //     s.stake_due = now() + (60 * 60 * 24 * 7 * 4);
+        // } else if (_stake_period == QUARTERLY) {
+        //     s.stake_due = now() + (60 * 60 * 24 * 7 * 12);
+        // }
     });
 }
 
