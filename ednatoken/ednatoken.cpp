@@ -223,6 +223,7 @@ void ednatoken::process(const uint8_t _pay_indicator,
                         s.staked += payout;         // increases existing stake
                         sub_balance(_self, payout); // decrement payout from _self
                         s.stake_due = now() + (60 * 60 * 24 * 7);
+                        s.escrow = 0;
                     }
                     else
                     {
@@ -246,6 +247,7 @@ void ednatoken::process(const uint8_t _pay_indicator,
                         s.staked += payout; // increases existing stake
                         s.staked += s.escrow;
                         sub_balance(_self, payout + s.escrow); // decrement payout from _self
+                        s.escrow = 0;
                         s.stake_due = now() + (60 * 60 * 24 * 7 * 4);
                     }
                     else
@@ -269,6 +271,7 @@ void ednatoken::process(const uint8_t _pay_indicator,
                     s.staked += s.escrow;
                     sub_balance(_self, payout + s.escrow); // decrement payout from _self
                     s.stake_due = now() + (60 * 60 * 24 * 7 * 12);
+                    s.escrow = 0;
                 }
                 else
                 {
