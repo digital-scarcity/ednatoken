@@ -24,12 +24,12 @@ class ednatoken : public contract
     void issue(account_name to, asset quantity, string memo);
 
     // @abi action
-    void addstake (account_name _stake_account,
+    void stake (account_name _stake_account,
                    uint8_t      _stake_period,
                    asset       _staked ) ;
 
     // @abi action
-    void unstake (const uint64_t _stake_id);
+    void unstake (const account_name _stake_account);
 
     // @abi action
     void transfer(account_name from,
@@ -67,9 +67,14 @@ class ednatoken : public contract
         uint64_t        config_id;
         asset           bonus;
         account_name    overflow;
+        uint64_t        throttle;
+        uint64_t        placeholder1;
+        uint64_t        placeholder2;
+        uint64_t        placeholder3;
 
         uint64_t    primary_key() const { return config_id; }
-        EOSLIB_SERIALIZE (config, (config_id)(bonus)(overflow));
+        EOSLIB_SERIALIZE (config, (config_id)(bonus)(overflow)(throttle)
+                            (placeholder1)(placeholder2)(placeholder3));
     };
 
     typedef eosio::multi_index<N(configs), config> config_table;
@@ -85,24 +90,27 @@ class ednatoken : public contract
 
     // @abi table stakes i64
     struct stake_row {
-        uint64_t        stake_id;
+//        uint64_t        stake_id;
         account_name    stake_account;
         uint8_t         stake_period;
         asset           staked;
         uint32_t        stake_date;
         uint32_t        stake_due;
+        asset           escrow; //  = asset{"0.0000 EDNA"};
 
-        uint64_t        primary_key () const { return stake_id; }
-        account_name    byaccount() const { return stake_account; }
+        account_name        primary_key () const { return stake_account; }
+  //      account_name    byaccount() const { return stake_account; }
 
-        EOSLIB_SERIALIZE (stake_row, (stake_id)(stake_account)(stake_period)(staked)(stake_date)(stake_due));
+        EOSLIB_SERIALIZE (stake_row, (stake_account)(stake_period)(staked)(stake_date)(stake_due)(escrow));
     };
 
-    typedef eosio::multi_index<N(stakes), stake_row,
-        indexed_by< N(stakeaccount),
-            const_mem_fun<stake_row, account_name, &stake_row::byaccount>
-        >
-    > stake_table;
+    typedef eosio::multi_index<N(stakes), stake_row> stake_table;
+
+    // typedef eosio::multi_index<N(stakes), stake_row,
+    //     indexed_by< N(stakeaccount),
+    //         const_mem_fun<stake_row, account_name, &stake_row::byaccount>
+    //     >
+    // > stake_table;
 
     // @abi table stat i64
     struct currencystat
@@ -152,4 +160,4 @@ asset ednatoken::get_balance(account_name owner, symbol_name sym) const
 
 
 EOSIO_ABI( ednatoken, (setoverflow)(addbonus)(create)
-                        (issue)(transfer)(addstake)(unstake)(process))
+                        (issue)(transfer)(stake)(unstake)(process))
